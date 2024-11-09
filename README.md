@@ -3,7 +3,7 @@ A simple command line search tool completed as part of <a href = "https://doc.ru
 
 ---- 
 
-Extra features compared to the book's example:
+**Extra features compared to the book's example:**
 
 - counts and displays the number of lines that match the query
 - Uses <a href="https://crates.io/crates/boyer-moore-magiclen">Beyer Moore Magiclen</a> as a more efficient search method than linear search.
@@ -22,6 +22,5 @@ Currently further developing the project compared to the book's example to inclu
 - search for regex matches
 - search for whole word matches
 - add a help command that outputs all the commands and their syntax
-
 - highlight matches with colour
 - control case sensitivity through either a command line argument or an environment variable - decide which takes precedence
