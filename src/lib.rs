@@ -8,8 +8,9 @@ pub struct Config {
 }
 
 pub struct SearchResults<'a> {
-    pub lines: Vec<&'a str>,
+    pub lines: Vec<(&'a str, usize)>,
     pub count: usize,
+
 }
 
 impl Config {
@@ -41,10 +42,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    for line in results.lines {
-        println!("{line}");
+    for (line, num) in results.lines {
+        println!("{} ({})", line, num);
     }
-    println!("Line count: {}", results.count);
+    println!("\nLine count: {}", results.count);
 
     Ok(())
 }
@@ -53,10 +54,10 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Result<SearchResults<'a>, S
     let mut results = Vec::new();
     let mut count = 0;
 
-    for line in contents.lines() {
+    for (index, line) in contents.lines().enumerate() {
         let search = BMByte::from(query).ok_or_else(|| "Failed to create search pattern")?;
         if search.find_in(line, 0).len() > 0 {
-            results.push(line);
+            results.push((line, index + 1));
             count += 1;
         }
     }
@@ -68,15 +69,18 @@ pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Result<Sea
     let query = query.to_lowercase();
     let mut count = 0;
 
-    for line in contents.lines() {
+    for (index, line) in contents.lines().enumerate() {
         let search = BMByte::from(&query).ok_or_else(|| "Failed to create search pattern")?;
         if search.find_in(line.to_lowercase(), 0).len() > 0 {
-            results.push(line);
+            results.push((line, index + 1));
             count += 1;
         }
     }
     
     Ok(SearchResults { lines: results, count: count })
+}
+
+fn highlight_matches(lines: Vec<&str>) {
 }
 
 #[cfg(test)]
@@ -93,7 +97,7 @@ Pick three.
 Duct tape.";
         let results = search(query, contents).unwrap();
         assert_eq!(
-            vec!["safe, fast, productive."], 
+            vec![("safe, fast, productive.", 2)], 
             results.lines
         );
         assert_eq!(results.count, 1);
@@ -109,7 +113,7 @@ Pick three.
 Trust me.";
         let results = search_case_insensitive(query, contents).unwrap();
         assert_eq!(
-            vec!["Rust:", "Trust me."], 
+            vec![("Rust:", 1), ("Trust me.", 4)], 
             results.lines
         );
         assert_eq!(results.count, 2);
