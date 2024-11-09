@@ -1,4 +1,5 @@
 use std::{error::Error, fs, env};
+use boyer_moore_magiclen::BMByte;
 
 pub struct Config {
     pub query: String,
@@ -29,9 +30,15 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.file_path)?;
     
     let results = if config.ignore_case {
-        search_case_insensitive(&config.query, &contents)
+        match search_case_insensitive(&config.query, &contents) {
+            Ok(results) => results,
+            Err(e) => return Err(e.into()),
+        }
     } else {
-        search(&config.query, &contents)
+        match search(&config.query, &contents) {
+            Ok(results) => results,
+            Err(e) => return Err(e.into()),
+        }
     };
 
     for line in results.lines {
@@ -42,32 +49,34 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn search<'a>(query: &str, contents: &'a str) -> SearchResults<'a> {
+pub fn search<'a>(query: &str, contents: &'a str) -> Result<SearchResults<'a>, String> {
     let mut results = Vec::new();
     let mut count = 0;
 
     for line in contents.lines() {
-        if line.contains(query) {
+        let search = BMByte::from(query).ok_or_else(|| "Failed to create search pattern")?;
+        if search.find_in(line, 0).len() > 0 {
             results.push(line);
             count += 1;
         }
     }
-    SearchResults { lines: results, count: count }
+    Ok(SearchResults { lines: results, count: count })
 }
 
-pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> SearchResults<'a> {
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Result<SearchResults<'a>, String> {
     let mut results = Vec::new();
     let query = query.to_lowercase();
     let mut count = 0;
 
     for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
+        let search = BMByte::from(&query).ok_or_else(|| "Failed to create search pattern")?;
+        if search.find_in(line.to_lowercase(), 0).len() > 0 {
             results.push(line);
             count += 1;
         }
     }
     
-    SearchResults { lines: results, count: count }
+    Ok(SearchResults { lines: results, count: count })
 }
 
 #[cfg(test)]
@@ -82,7 +91,7 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-        let results = search(query, contents);
+        let results = search(query, contents).unwrap();
         assert_eq!(
             vec!["safe, fast, productive."], 
             results.lines
@@ -98,12 +107,21 @@ Rust:
 safe, fast, productive.
 Pick three.
 Trust me.";
-        let results = search_case_insensitive(query, contents);
+        let results = search_case_insensitive(query, contents).unwrap();
         assert_eq!(
             vec!["Rust:", "Trust me."], 
             results.lines
         );
         assert_eq!(results.count, 2);
+    }
+
+    #[test]
+    fn no_results() {
+        let query = "test";
+        let contents = "Rust: safe, fast, productive.";
+        let results = search(query, contents).unwrap();
+        assert_eq!(results.lines.len(), 0);
+        assert_eq!(results.count, 0);
     }
 
 }
