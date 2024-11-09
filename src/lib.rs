@@ -6,6 +6,11 @@ pub struct Config {
     pub ignore_case: bool,
 }
 
+pub struct SearchResults<'a> {
+    pub lines: Vec<&'a str>,
+    pub count: usize,
+}
+
 impl Config {
     pub fn build(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 3 {
@@ -29,36 +34,40 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         search(&config.query, &contents)
     };
 
-    for line in results {
+    for line in results.lines {
         println!("{line}");
     }
-
-
+    println!("Line count: {}", results.count);
 
     Ok(())
 }
 
-pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search<'a>(query: &str, contents: &'a str) -> SearchResults<'a> {
     let mut results = Vec::new();
+    let mut count = 0;
 
     for line in contents.lines() {
         if line.contains(query) {
             results.push(line);
+            count += 1;
         }
     }
-    results
+    SearchResults { lines: results, count: count }
 }
 
-pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> SearchResults<'a> {
     let mut results = Vec::new();
     let query = query.to_lowercase();
+    let mut count = 0;
 
     for line in contents.lines() {
         if line.to_lowercase().contains(&query) {
             results.push(line);
+            count += 1;
         }
     }
-    results
+    
+    SearchResults { lines: results, count: count }
 }
 
 #[cfg(test)]
@@ -73,8 +82,12 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+        let results = search(query, contents);
+        assert_eq!(
+            vec!["safe, fast, productive."], 
+            results.lines
+        );
+        assert_eq!(results.count, 1);
     }
 
     #[test]
@@ -85,8 +98,12 @@ Rust:
 safe, fast, productive.
 Pick three.
 Trust me.";
-
-        assert_eq!(vec!["Rust:", "Trust me."], search_case_insensitive(query, contents));
+        let results = search_case_insensitive(query, contents);
+        assert_eq!(
+            vec!["Rust:", "Trust me."], 
+            results.lines
+        );
+        assert_eq!(results.count, 2);
     }
 
 }
