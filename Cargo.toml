@@ -3,5 +3,9 @@ name = "minigrep"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "mygrep"
+path = "src/main.rs"
+
 [dependencies]
 boyer-moore-magiclen = "0.2.20"
