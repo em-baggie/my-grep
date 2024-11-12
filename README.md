@@ -10,7 +10,7 @@ A simple command line search tool completed as part of <a href = "https://doc.ru
 - [x] Displays the line number of each line that matches the query
 - [x] Option to display a help command that outputs all the commands and their syntax
 - [x] Refactored into modules
--[ ] Control case sensitivity through either a command line argument or an environment variable - decide which takes precedence
+- [ ] Control case sensitivity through either a command line argument or an environment variable - decide which takes precedence
 
 ----
 
