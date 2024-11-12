@@ -18,8 +18,8 @@ pub fn run_program(config: Config) -> Result<(), Box<dyn Error>> {
     };
 
     print!("\n");
-    for (line, num) in results.lines {
-        println!("{} ({})", line, num);
+    for (num, line) in results.lines {
+        println!("({}) {}", num, line);
     }
     println!("\nLine count: {}\n", results.count);
 
