@@ -10,8 +10,6 @@ A simple command line search tool completed as part of <a href = "https://doc.ru
 - [x] Refactored into modules
 - [ ] Control case sensitivity through either a command line argument or an environment variable - decide which takes precedence
 
-----
-
 ## How to run:
 1. **Clone the repository:**
    ```
@@ -25,12 +23,12 @@ A simple command line search tool completed as part of <a href = "https://doc.ru
 3. **Create a plain text file** to be searched in the root directory `/mygrep`<br><br>
 
 4. **Run the application** (from within the root directory `/mygrep`):<br><br>
-    To search for a query in a given directory:
+    To search for a query in a given file path:
     ```
-    `mygrep <query> <directory>`<br>
+    `mygrep <query> <file_path>`<br>
     ```
     ```
-    `mygrep <query> <directory> --insensitive`
+    `mygrep <query> <file_path> --insensitive`
     ```
     To display all commands and their syntax:
     ```
@@ -46,5 +44,5 @@ A simple command line search tool completed as part of <a href = "https://doc.ru
     ```
     Alternatively, run the application with the preceding environment variable:
     ```
-    IGNORE_CASE=1 mygrep <query> <directory>
+    IGNORE_CASE=1 mygrep <query> <file_path>
     ```
