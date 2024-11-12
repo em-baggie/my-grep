@@ -1,38 +1,43 @@
 use boyer_moore_magiclen::BMByte;
+
 pub struct SearchResults<'a> {
-    pub lines: Vec<(&'a str, usize)>,
+    pub lines: Vec<(usize, &'a str)>,
     pub count: usize,
 
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Result<SearchResults<'a>, String> {
-    let mut results = Vec::new();
-    let mut count = 0;
+    // inputting word and contents of file, want to output search results
 
-    for (index, line) in contents.lines().enumerate() {
-        let search = BMByte::from(query).ok_or_else(|| "Failed to create search pattern")?;
-        if search.find_in(line, 0).len() > 0 {
-            results.push((line, index + 1));
-            count += 1;
-        }
-    }
-    Ok(SearchResults { lines: results, count: count })
+    let search = BMByte::from(query).ok_or_else(|| "Failed to create search pattern")?;
+
+    let lines: Vec<(usize, &'a str)> = contents
+        .lines() // make contents into iterator where each item is a line
+        .enumerate() // transforms iterator into (index, line)
+        .filter(|(_, line)| search.find_full_in(line, 0).len() > 0) // filters the enumerated lines, retains only those containing query substring
+        .map(|(index, line)| (index + 1, line)) // creates tuple for each line that includes the line itself and its indecx incremented by 1
+        .collect();
+
+    let count = lines.len();
+
+    Ok(SearchResults { lines: lines, count: count })
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Result<SearchResults<'a>, String> {
-    let mut results = Vec::new();
-    let query = query.to_lowercase();
-    let mut count = 0;
+    let query_lower = query.to_lowercase();
+    let search = BMByte::from(query_lower).ok_or_else(|| "Failed to create search pattern")?;
 
-    for (index, line) in contents.lines().enumerate() {
-        let search = BMByte::from(&query).ok_or_else(|| "Failed to create search pattern")?;
-        if search.find_in(line.to_lowercase(), 0).len() > 0 {
-            results.push((line, index + 1));
-            count += 1;
-        }
-    }
+    let lines: Vec<(usize, &'a str)> = contents
+        .lines() // make contents into iterator where each item is a line
+        .enumerate() // transforms iterator into (index, line)
+        .filter(|(_, line)| search.find_full_in(line.to_lowercase(), 0).len() > 0) // filters the enumerated lines, retains only those containing query substring
+        .map(|(index, line)| (index + 1, line)) // creates tuple for each line that includes the line itself and its indecx incremented by 1
+        .collect();
+
+    let count = lines.len();
+
+    Ok(SearchResults { lines: lines, count: count })
     
-    Ok(SearchResults { lines: results, count: count })
 }
 
 #[cfg(test)]
@@ -49,7 +54,7 @@ Pick three.
 Duct tape.";
         let results = search(query, contents).unwrap();
         assert_eq!(
-            vec![("safe, fast, productive.", 2)], 
+            vec![(2, "safe, fast, productive.")], 
             results.lines
         );
         assert_eq!(results.count, 1);
@@ -65,7 +70,7 @@ Pick three.
 Trust me.";
         let results = search_case_insensitive(query, contents).unwrap();
         assert_eq!(
-            vec![("Rust:", 1), ("Trust me.", 4)], 
+            vec![(1, "Rust:"), (4, "Trust me.")], 
             results.lines
         );
         assert_eq!(results.count, 2);
