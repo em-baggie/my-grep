@@ -33,7 +33,7 @@ A simple command-line search tool which builds upon the project outlined in <a h
     ```
 
     **Controlling case sensitivity**<br>
-    The default is case-sensitive search. To enable case-insensitive search, either set the environmental variable or use the command line argument '-i' as described below. Note the environmental variable takes precendence.
+    The default is case-sensitive search. To enable case-insensitive search, either set the environmental variable or use the command line argument `-i` as described below. Note the environmental variable takes precendence.
     
     1. Using the environment variable:<br>
         Set the `IGNORE_CASE` environment variable to `1` before running the application:
